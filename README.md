@@ -117,3 +117,66 @@ vkulkarn@mymachine:~/geopipe$ ls -lh total_precipitation_2022/total_precipitatio
 vkulkarn@mymachine:~/geopipe$ ls -lh total_precipitation_2022/
 total 17G
 ```
+
+## 5. Examining the Structure of the Downloaded Data
+
+Before proceeding with data processing, it is essential to understand how the NetCDF files are structured and what kind of information they contain. This allows us to better plan the data transformation pipeline.
+I used a Python script (`src/eda_nc_file.py`) to inspect the structure of the NetCDF files and examine the dataset’s contents. The goal was to identify the available dimensions, coordinates, and variables in the dataset.
+
+```bash
+<xarray.Dataset> Size: 199MB
+Dimensions:    (longitude: 1440, latitude: 721, time: 24)
+Coordinates:
+  * longitude  (longitude) float32 6kB 0.0 0.25 0.5 0.75 ... 359.2 359.5 359.8
+  * latitude   (latitude) float32 3kB 90.0 89.75 89.5 ... -89.5 -89.75 -90.0
+  * time       (time) datetime64[ns] 192B 2022-03-26 ... 2022-03-26T23:00:00
+Data variables:
+    tp         (time, latitude, longitude) float64 199MB ...
+Attributes:
+    Conventions:  CF-1.6
+    history:      2022-10-11 18:00:20 GMT by grib_to_netcdf-2.25.1: /opt/ecmw...
+
+Dimensions:
+ FrozenMappingWarningOnValuesAccess({'longitude': 1440, 'latitude': 721, 'time': 24})
+
+Coordinates:
+ Coordinates:
+  * longitude  (longitude) float32 6kB 0.0 0.25 0.5 0.75 ... 359.2 359.5 359.8
+  * latitude   (latitude) float32 3kB 90.0 89.75 89.5 ... -89.5 -89.75 -90.0
+  * time       (time) datetime64[ns] 192B 2022-03-26 ... 2022-03-26T23:00:00
+
+Variables:
+ Frozen({'longitude': <xarray.IndexVariable 'longitude' (longitude: 1440)> Size: 6kB
+array([0.0000e+00, 2.5000e-01, 5.0000e-01, ..., 3.5925e+02, 3.5950e+02,
+       3.5975e+02], dtype=float32)
+Attributes:
+    units:      degrees_east
+    long_name:  longitude, 'latitude': <xarray.IndexVariable 'latitude' (latitude: 721)> Size: 3kB
+array([ 90.  ,  89.75,  89.5 , ..., -89.5 , -89.75, -90.  ], dtype=float32)
+Attributes:
+    units:      degrees_north
+    long_name:  latitude, 'time': <xarray.IndexVariable 'time' (time: 24)> Size: 192B
+array(['2022-03-26T00:00:00.000000000', '2022-03-26T01:00:00.000000000',
+       '2022-03-26T02:00:00.000000000', '2022-03-26T03:00:00.000000000',
+       '2022-03-26T04:00:00.000000000', '2022-03-26T05:00:00.000000000',
+       '2022-03-26T06:00:00.000000000', '2022-03-26T07:00:00.000000000',
+       '2022-03-26T08:00:00.000000000', '2022-03-26T09:00:00.000000000',
+       '2022-03-26T10:00:00.000000000', '2022-03-26T11:00:00.000000000',
+       '2022-03-26T12:00:00.000000000', '2022-03-26T13:00:00.000000000',
+       '2022-03-26T14:00:00.000000000', '2022-03-26T15:00:00.000000000',
+       '2022-03-26T16:00:00.000000000', '2022-03-26T17:00:00.000000000',
+       '2022-03-26T18:00:00.000000000', '2022-03-26T19:00:00.000000000',
+       '2022-03-26T20:00:00.000000000', '2022-03-26T21:00:00.000000000',
+       '2022-03-26T22:00:00.000000000', '2022-03-26T23:00:00.000000000'],
+      dtype='datetime64[ns]')
+Attributes:
+    long_name:  time, 'tp': <xarray.Variable (time: 24, latitude: 721, longitude: 1440)> Size: 199MB
+[24917760 values with dtype=float64]
+Attributes:
+    units:      m
+    long_name:  Total precipitation})
+
+Latitude shape: (721,)
+Longitude shape: (1440,)
+Precipitation shape: (24, 721, 1440)
+```
