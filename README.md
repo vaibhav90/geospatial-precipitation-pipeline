@@ -1,10 +1,13 @@
 # Total Precipitation Data Processing and Query Pipeline
 
-This project aims to process and query global precipitation data using a geospatial indexing method (H3) for efficient queries based on both time and location.
+This project aims to process and query global precipitation data (Year 2022) from ARCO ERA5 using a geospatial indexing method (H3) for efficient queries based on both time and location.
+The project will show share how one can productionize such a data processing pipeline and make it scalable for large-scale data processing on a resource-constrained environment.
 
 ## 1. Machine Configuration
 
-This project is running on the following machine configuration. The choice of this setup was primarily based on availability and to explore the challenges of handling large-scale data processing in a resource-constrained environment:
+I have the following Linux-box setup for this project.
+The choice of this setup was primarily based on availability and to explore the challenges of handling large-scale data processing in a resource-constrained environment. 
+The machine configuration is as follows:
 
 - **Operating System**: Ubuntu Linux 24.04 LTS
 - **Virtual Machine Type**: Standard D16ads v5
@@ -20,25 +23,20 @@ For this project, the following Python version and guidelines are being used:
 - **Code Style Guide**: [PEP 8 - Style Guide for Python Code](https://peps.python.org/pep-0008/)
 - **Git Commit Conventions**: [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/)
 
-By adhering to these guidelines, the project aims to maintain readability, consistency, and a standardized commit history for easier collaboration and tracking of changes.
-
 ## 3. Installing Project Dependencies
 
-Given the above choices and the dataset location, the following system-level prerequisites and Python packages are required to run the project:
+Given the above choices and the dataset, the following system-level prerequisites and Python packages are required to run the project, based on my preliminary analysis of the dataset and the processing requirements.
 
-1. **Update System Packages and Install Python 3, Pip3 and Google Cloud SDK**:
+1. **Update System Packages and Install Python3, Pip3, GCloud SDK and GIT**:
    ```bash
    sudo apt update && sudo apt upgrade -y 
    sudo apt install python3 python3-pip -y
    sudo apt-get install apt-transport-https ca-certificates gnupg
    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
    sudo apt-get install google-cloud-sdk
+   sudo apt-get install git
     ```
-2. **Install Git**:
-    ```bash
-    sudo apt install git -y
-    ```
-3. Create python requirements
+2. Create python requirements file and install the required packages:
     ```bash
     touch requirements.txt
     echo "xarray==0.19.0" >> requirements.txt
@@ -48,62 +46,41 @@ Given the above choices and the dataset location, the following system-level pre
     echo "gcsfs==2021.10.0" >> requirements.txt
     echo "gsutil==4.68" >> requirements.txt
     echo "pyarrow==5.0.0" >> requirements.txt
-    ```
-4. **Install Python Dependencies**:
-    ```bash
     pip3 install -r requirements.txt
     ```
 
-
-## 4. Exploring the Dataset and Narrowing Down the Scope
+## 4. Exploring the Dataset
 
 ### 4.1 Understanding the Data Repository
 
-The source data for this project is hosted in the ARCO ERA5 dataset, which is a comprehensive collection of climate and Iather data. The data repository is structured hierarchically and contains various atmospheric variables across multiple years, stored in NetCDF format.
-
-The ERA5 dataset is massive and includes different types of meteorological data, like temperature, humidity, wind speed, and more. For this project, I are only concerned with total precipitation data for the year 2022. The specific path within the repository containing the data I need is:
-
+The source data for this project is hosted in the ARCO ERA5 dataset, The data repository is structured hierarchically and contains various atmospheric variables across multiple years, stored in NetCDF format.
+The ERA5 dataset is massive and includes different types of meteorological data, like temperature, humidity, wind speed, and more. 
+For this project, I am only concerned with total precipitation data for the year 2022. The specific path within the repository containing the data I need is:
 ```bash
 gs://gcp-public-data-arco-era5/raw/date-variable-single_level/2022/
 ```
-
 Within this path, the data is organized by date, variable, and spatial level. For example:
-
 ```bash
 gs://gcp-public-data-arco-era5/raw/date-variable-single_level/2022/01/01/total_precipitation/surface.nc
 ```
-
 This structure indicates:
-
 - **Year**: 2022
 - **Month**: 01 (January)
 - **Day**: 01
 - **Variable**: total_precipitation
 - **Level**: surface
 
-Given that the repository contains data for all days of the year, the total size of the dataset is significant. To avoid overwhelming our processing capabilities, I focused on downloading only the data I require.
+### 4.2 Steps Taken to Download the Data
 
-### 4.2 Deciding What to Download
-
-After inspecting the dataset's structure, I made the following decisions:
-
-- **Variable Selection**: I narroId down to `total_precipitation` as the variable of interest.
-- **Temporal Range**: I decided to download the data for the entire year 2022.
-- **Spatial Resolution**: I kept the default surface level, as it gives a global perspective of total precipitation.
-
-### 4.3 Steps Taken to Download the Data
-
-I used `gsutil`, a command-line tool for accessing Google Cloud Storage, to download the required files. 
-The key challenge was managing the large number of files (365 days of data), where each file contains hourly data for that day. 
+I used `gsutil`, a command-line tool for accessing Google Cloud Storage, to download the required files.  
 To avoid overwriting files (since each file is named `surface.nc`), I wrote a Python script to handle downloading and renaming each file based on the date.
-
 The following command illustrates how I initially tested downloading the data:
 
 ```bash
 gsutil cp gs://gcp-public-data-arco-era5/raw/date-variable-single_level/2022/*/*/total_precipitation/surface.nc .
 ```
 
-However, due to potential overwriting, I switched to using a Python script (`src/download_raw_datasets.py`) to:
+I switched to using a Python script (`src/download_raw_datasets.py`) to have more control over the download process. The script performs the following steps:
 
 1. Download each file.
 2. Rename each file based on the date.
@@ -113,15 +90,15 @@ Each NetCDF file is approximately 48 MB in size:
 
 ```bash
 vkulkarn@mymachine:~/geopipe$ ls -lh total_precipitation_2022/total_precipitation_2022_01_01.nc
--rw-rw-r-- 1 vkulkarn vkulkarn 48M Aug 23 17:41 total_precipitation_2022/total_precipitation_2022_01_01.nc
+-rw-rw-r-- 1 vkulkarn vkulkarn 48M total_precipitation_2022/total_precipitation_2022_01_01.nc
 vkulkarn@mymachine:~/geopipe$ ls -lh total_precipitation_2022/
 total 17G
 ```
 
 ## 5. Examining the Structure of the Downloaded Data
 
-Before proceeding with data processing, it is essential to understand how the NetCDF files are structured and what kind of information they contain. This allows us to better plan the data transformation pipeline.
-I used a Python script (`src/eda_nc_file.py`) to inspect the structure of the NetCDF files and examine the dataset’s contents. The goal was to identify the available dimensions, coordinates, and variables in the dataset.
+I used a Python script (`src/eda_nc_file.py`) to inspect the structure of the NetCDF files and examine the dataset’s contents. 
+I wanted to identify the available dimensions, coordinates, and variables in the dataset.
 
 ```bash
 <xarray.Dataset> Size: 199MB
@@ -180,3 +157,108 @@ Latitude shape: (721,)
 Longitude shape: (1440,)
 Precipitation shape: (24, 721, 1440)
 ```
+
+## 6. Deciding on the Data Processing Strategy: All-at-Once vs. Sequential Processing
+
+Given the size of the dataset and the memory limitations of the available machine, one of the key challenges was deciding whether to process all the raw NetCDF files into Parquet format in a single step or to break down the process into sequential stages. 
+The following considerations were taken into account:
+
+### 6.1 Processing All Files at Once
+
+Initially, the idea was to load all the raw NetCDF files, apply the necessary transformations, create H3 geospatial indices, and then combine everything into a single Parquet dataset.
+However, after estimating the memory requirements, it was clear that the machine would not be able to handle the entire dataset at once, especially when considering the intermediate steps of adding H3 indices and combining the data.
+Obviously, this could have been achieved using a carefully curated batch processing strategy, but the memory constraints would have made it challenging to find the optimal batch size.
+Furthermore, since I decided to use Python and my experience with python's garbage collection, I was not confident that the memory would be released efficiently after processing each file, which could lead to memory leaks and potential crashes.
+
+### 6.2 Sequential Processing:
+
+To address these limitations, I opted for a safer and more memory-efficient approach by breaking down the data processing into sequential stages. The process was divided into three main steps:
+
+1. **Step 1: Convert Raw NetCDF Files to Parquet**:
+   - Each NetCDF file was individually converted to Parquet format, ensuring that each day’s data was stored in a separate Parquet file.
+
+2. **Step 2: Compute H3 Indices and Combine Data**:
+   - After converting the raw data to Parquet, the next step was to compute the H3 geospatial indices for each latitude and longitude pair.
+   - The data was then combined into a single Parquet file, which would be used for querying.
+
+I wanted to be sure that I can execute the script in the night and wake up to see it completed successfully in the morning.
+
+## 7. Considerations for Transforming NetCDF to Parquet
+
+The NetCDF file structure cannot be directly transformed into a Parquet file without some intermediate steps for several key reasons:
+
+### 7.1 Dimensional Structure
+
+NetCDF files are multidimensional, with variables organized along dimensions like latitude, longitude, and time.
+Parquet files, however, are columnar and tabular in nature, designed for flat data structures.
+This difference in structure necessitates transforming the multidimensional NetCDF data into a flat, tabular format before converting it into Parquet.
+
+### 7.2 Coordinate System
+
+In the NetCDF file, latitude and longitude are separate 1-dimensional arrays, while the precipitation data is a 3-dimensional array (time, latitude, longitude).
+To convert this into a tabular format suitable for Parquet, the structure needs to be "flattened" so that each combination of time, latitude, and longitude corresponds to a unique row in the corresponding Parquet file.
+
+### 7.3 Data Alignment
+
+To ensure the spatial and temporal relationships in the data are preserved during the transformation, the precipitation data needs to be aligned with the correct latitude and longitude values for each data point.
+This involves creating a meshgrid of coordinates and then flattening both the coordinate arrays and the precipitation data.
+
+### 7.4 H3 Index Computation
+
+In addition to the basic transformation, I also compute the H3 index for each latitude-longitude pair.
+The H3 index is computed using the `h3` library, with a specified resolution (in this case, resolution 5). This adds an additional column to our Parquet file, allowing for geospatial operations and queries based on the H3 hexagonal grid system.
+The script to convert the NetCDF files to Parquet (`src/convert_nc_to_parquet.py`) performs these steps, including H3 index computation, and ensures that the data is correctly transformed, aligned, with geospatial indexing before being saved in Parquet format.
+
+I ensured that there is no data loss during the transformation process, and the addition of the H3 index provides enhanced capabilities for spatial analysis without altering the original meteorological data.
+
+```bash
+Columns:
+Index(['timestamp', 'h3_index', 'latitude', 'longitude', 'precipitation'], dtype='object')
+
+Data Types:
+timestamp        datetime64[ns]
+h3_index                 object
+latitude                float32
+longitude               float32
+precipitation           float64
+dtype: object
+
+First few rows:
+   timestamp         h3_index  latitude  longitude  precipitation
+0 2022-03-26  85032623fffffff      90.0       0.00       0.000012
+1 2022-03-26  85032623fffffff      90.0       0.25       0.000012
+2 2022-03-26  85032623fffffff      90.0       0.50       0.000012
+3 2022-03-26  85032623fffffff      90.0       0.75       0.000012
+4 2022-03-26  85032623fffffff      90.0       1.00       0.000012
+
+Basic Statistics:
+                           timestamp      latitude     longitude  precipitation
+count                       24917760  2.491776e+07  2.491776e+07   2.491776e+07
+mean   2022-03-26 11:30:00.000005632  0.000000e+00  1.798752e+02   9.758917e-05
+min              2022-03-26 00:00:00 -9.000000e+01  0.000000e+00   0.000000e+00
+25%              2022-03-26 05:45:00 -4.500000e+01  8.993750e+01   0.000000e+00
+50%              2022-03-26 11:30:00  0.000000e+00  1.798750e+02   3.719058e-06
+75%              2022-03-26 17:15:00  4.500000e+01  2.698125e+02   3.905011e-05
+max              2022-03-26 23:00:00  9.000000e+01  3.597500e+02   3.046513e-02
+std                              NaN  5.203364e+01  1.039230e+02   4.158916e-04
+
+DataFrame Info:
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 24917760 entries, 0 to 24917759
+Data columns (total 5 columns):
+ #   Column         Dtype         
+---  ------         -----         
+ 0   timestamp      datetime64[ns]
+ 1   h3_index       object        
+ 2   latitude       float32       
+ 3   longitude      float32       
+ 4   precipitation  float64       
+dtypes: datetime64[ns](1), float32(2), float64(1), object(1)
+memory usage: 760.4+ MB
+```
+
+
+
+
+
+
