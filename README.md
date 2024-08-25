@@ -54,6 +54,55 @@ Given the above choices and the dataset location, the following system-level pre
     pip3 install -r requirements.txt
     ```
 
-   
 
-   
+## 4. Exploring the Dataset and Narrowing Down the Scope
+
+### 4.1 Understanding the Data Repository
+
+The source data for this project is hosted in the ARCO ERA5 dataset, which is a comprehensive collection of climate and Iather data. The data repository is structured hierarchically and contains various atmospheric variables across multiple years, stored in NetCDF format.
+
+The ERA5 dataset is massive and includes different types of meteorological data, like temperature, humidity, wind speed, and more. For this project, I are only concerned with total precipitation data for the year 2022. The specific path within the repository containing the data I need is:
+
+```bash
+gs://gcp-public-data-arco-era5/raw/date-variable-single_level/2022/
+```
+
+Within this path, the data is organized by date, variable, and spatial level. For example:
+
+```bash
+gs://gcp-public-data-arco-era5/raw/date-variable-single_level/2022/01/01/total_precipitation/surface.nc
+```
+
+This structure indicates:
+
+- **Year**: 2022
+- **Month**: 01 (January)
+- **Day**: 01
+- **Variable**: total_precipitation
+- **Level**: surface
+
+Given that the repository contains data for all days of the year, the total size of the dataset is significant. To avoid overwhelming our processing capabilities, I focused on downloading only the data I require.
+
+### 4.2 Deciding What to Download
+
+After inspecting the dataset's structure, I made the following decisions:
+
+- **Variable Selection**: I narroId down to `total_precipitation` as the variable of interest.
+- **Temporal Range**: I decided to download the data for the entire year 2022.
+- **Spatial Resolution**: I kept the default surface level, as it gives a global perspective of total precipitation.
+
+### 4.3 Steps Taken to Download the Data
+
+I used `gsutil`, a command-line tool for accessing Google Cloud Storage, to download the required files. The key challenge was managing the large number of files (365 days of data), where each file contains hourly data for that day. To avoid overwriting files (since each file is named `surface.nc`), I wrote a Python script to handle downloading and renaming each file based on the date.
+
+The following command illustrates how I initially tested downloading the data:
+
+```bash
+gsutil cp gs://gcp-public-data-arco-era5/raw/date-variable-single_level/2022/*/*/total_precipitation/surface.nc .
+```
+
+HoIver, due to potential overwriting, I switched to using a Python script to:
+
+1. Download each file.
+2. Rename each file based on the date.
+3. Organize them into a directory for further processing.
