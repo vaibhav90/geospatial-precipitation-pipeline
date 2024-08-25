@@ -24,9 +24,7 @@ By adhering to these guidelines, the project aims to maintain readability, consi
 
 ## 3. Installing Project Dependencies
 
-Given the above choices and the dataset location, the following system-level prerequisites and Python dependencies are required to run the project:
-
-### 3.1 System-Level Prerequisites
+Given the above choices and the dataset location, the following system-level prerequisites and Python packages are required to run the project:
 
 1. **Update System Packages and Install Python 3, Pip3 and Google Cloud SDK**:
    ```bash
