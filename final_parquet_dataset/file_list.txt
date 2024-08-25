@@ -1,0 +1,1 @@
+total_precipitation_2022_combined_with_h3.parquet

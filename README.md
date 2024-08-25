@@ -257,6 +257,34 @@ dtypes: datetime64[ns](1), float32(2), float64(1), object(1)
 memory usage: 760.4+ MB
 ```
 
+## 8. Combining Parquet Files into a Single Dataset
+
+After transforming each of the NetCDF files into Parquet format, the next step was to combine these individual Parquet files into a single consolidated dataset. 
+The script (`src/consolidate_parquet_to_query_dataset`) reads all the Parquet files in the directory, concatenates them into a single DataFrame, and then saves the combined dataset as a single Parquet file.
+
+To verify the integrity and structure of our final combined Parquet file, I implemented a sanity check script using Dask, a library for parallel computing in Python.
+This scripted tests the Data Loading Verification, Schema Validation, Data Sampling, H3 Index Verification. The below was the output of the sanity check script:
+
+```bash
+Columns in the dataset: Index(['timestamp', 'h3_index', 'latitude', 'longitude', 'precipitation'], dtype='object')
+   timestamp         h3_index  latitude  longitude  precipitation
+0 2022-08-04  860326237ffffff      90.0       0.00       0.000042
+1 2022-08-04  860326237ffffff      90.0       0.25       0.000042
+2 2022-08-04  860326237ffffff      90.0       0.50       0.000042
+3 2022-08-04  860326237ffffff      90.0       0.75       0.000042
+4 2022-08-04  860326237ffffff      90.0       1.00       0.000042
+0    860326b5fffffff
+1    8600cdaefffffff
+2    8600cdb9fffffff
+3    8600cd04fffffff
+4    860321c07ffffff
+5    860334017ffffff
+6    860333a87ffffff
+7    8600e8417ffffff
+8    86030004fffffff
+9    860301d87ffffff
+Name: h3_index, dtype: string
+```
 
 
 

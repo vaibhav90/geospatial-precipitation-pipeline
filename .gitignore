@@ -1,2 +1,3 @@
 /total_precipitation_2022/*.nc
 /parquet_chunks/*.parquet
+/final_parquet_dataset/*.parquet
