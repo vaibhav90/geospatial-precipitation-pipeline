@@ -93,7 +93,9 @@ After inspecting the dataset's structure, I made the following decisions:
 
 ### 4.3 Steps Taken to Download the Data
 
-I used `gsutil`, a command-line tool for accessing Google Cloud Storage, to download the required files. The key challenge was managing the large number of files (365 days of data), where each file contains hourly data for that day. To avoid overwriting files (since each file is named `surface.nc`), I wrote a Python script to handle downloading and renaming each file based on the date.
+I used `gsutil`, a command-line tool for accessing Google Cloud Storage, to download the required files. 
+The key challenge was managing the large number of files (365 days of data), where each file contains hourly data for that day. 
+To avoid overwriting files (since each file is named `surface.nc`), I wrote a Python script to handle downloading and renaming each file based on the date.
 
 The following command illustrates how I initially tested downloading the data:
 
@@ -101,8 +103,17 @@ The following command illustrates how I initially tested downloading the data:
 gsutil cp gs://gcp-public-data-arco-era5/raw/date-variable-single_level/2022/*/*/total_precipitation/surface.nc .
 ```
 
-HoIver, due to potential overwriting, I switched to using a Python script to:
+However, due to potential overwriting, I switched to using a Python script (`src/download_raw_datasets.py`) to:
 
 1. Download each file.
 2. Rename each file based on the date.
-3. Organize them into a directory for further processing.
+3. Organize them into a directory (`/total_precipitation_2022`) for further processing.
+
+Each NetCDF file is approximately 48 MB in size:
+
+```bash
+vkulkarn@mymachine:~/geopipe$ ls -lh total_precipitation_2022/total_precipitation_2022_01_01.nc
+-rw-rw-r-- 1 vkulkarn vkulkarn 48M Aug 23 17:41 total_precipitation_2022/total_precipitation_2022_01_01.nc
+vkulkarn@mymachine:~/geopipe$ ls -lh total_precipitation_2022/
+total 17G
+```
