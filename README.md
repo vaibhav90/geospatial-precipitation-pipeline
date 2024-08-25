@@ -21,3 +21,41 @@ For this project, the following Python version and guidelines are being used:
 - **Git Commit Conventions**: [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/)
 
 By adhering to these guidelines, the project aims to maintain readability, consistency, and a standardized commit history for easier collaboration and tracking of changes.
+
+## 3. Installing Project Dependencies
+
+Given the above choices and the dataset location, the following system-level prerequisites and Python dependencies are required to run the project:
+
+### 3.1 System-Level Prerequisites
+
+1. **Update System Packages and Install Python 3, Pip3 and Google Cloud SDK**:
+   ```bash
+   sudo apt update && sudo apt upgrade -y 
+   sudo apt install python3 python3-pip -y
+   sudo apt-get install apt-transport-https ca-certificates gnupg
+   echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+   sudo apt-get install google-cloud-sdk
+    ```
+2. **Install Git**:
+    ```bash
+    sudo apt install git -y
+    ```
+3. Create python requirements
+    ```bash
+    touch requirements.txt
+    echo "xarray==0.19.0" >> requirements.txt
+    echo "pandas==1.3.3" >> requirements.txt
+    echo "h3==3.7.3" >> requirements.txt
+    echo "dask==2021.9.1" >> requirements.txt
+    echo "gcsfs==2021.10.0" >> requirements.txt
+    echo "gsutil==4.68" >> requirements.txt
+    echo "pyarrow==5.0.0" >> requirements.txt
+    ```
+4. **Install Python Dependencies**:
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+   
+
+   
