@@ -326,7 +326,11 @@ The execution of these queries demonstrated that the data pipeline works effecti
 These sample queries validate that the processed precipitation data is not only correctly indexed but also quickly accessible for both temporal and spatial analysis.
 
 
+## 10. Timeframes & References
 
+The entire project took me ~3 Hours of active time including the setup, exploration, and processing of the dataset. 
+The project was completed in a single day, and the results were verified the next day. For scripting and testing, I used [Github Copilot](https://github.com/features/copilot). 
+I also tested how Copilot compared with [Claude-Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet) and now can see the potential of using Claude-Sonnet for such projects.
 
-
-
+1. [ERA5 data](https://cloud.google.com/storage/docs/public-datasets/era5)
+2. [Recipes for reproducing Analysis-Ready & Cloud Optimized (ARCO) ERA5 datasets](https://github.com/google-research/arco-era5)
