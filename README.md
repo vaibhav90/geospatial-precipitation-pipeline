@@ -286,6 +286,46 @@ Columns in the dataset: Index(['timestamp', 'h3_index', 'latitude', 'longitude',
 Name: h3_index, dtype: string
 ```
 
+## 8. Querying the Processed Data
+
+After processing the raw NetCDF files into a combined Parquet file format,  validation that the data is both accessible and performant when querying in needed.
+The below queries were implemented and tested (`src/example_queries`). 
+
+1. **Query by Timestamp Range:**
+   - This query filters the data based on a specified time range. It is useful for retrieving all precipitation data within a specific period, regardless of location. This query was selected to validate the temporal filtering of the dataset.
+
+2. **Query by Timestamp and H3 Geospatial Index:**
+   - This query combines both time and location-based filtering. It retrieves data from a specific time range for a precise geographic location, represented by an H3 index. This query was chosen to test both spatial and temporal dimensions, ensuring the processed dataset can handle geospatial queries efficiently.
+
+The results of the queries were as below:
+
+```bash
+Running Query 1: Filtering by Timestamp Range
+Query by timestamp executed in 156.79 seconds.
+   timestamp         h3_index  latitude  longitude  precipitation
+0 2022-08-04  860326237ffffff      90.0       0.00       0.000042
+1 2022-08-04  860326237ffffff      90.0       0.25       0.000042
+2 2022-08-04  860326237ffffff      90.0       0.50       0.000042
+3 2022-08-04  860326237ffffff      90.0       0.75       0.000042
+4 2022-08-04  860326237ffffff      90.0       1.00       0.000042
+
+Running Query 2: Filtering by Timestamp and H3 Index
+Query by timestamp and H3 index executed in 176.15 seconds.
+                  timestamp         h3_index  latitude  longitude  precipitation
+342066  2022-08-04 00:00:00  864740407ffffff     30.75      196.5       0.000013
+1380306 2022-08-04 01:00:00  864740407ffffff     30.75      196.5       0.000105
+2418546 2022-08-04 02:00:00  864740407ffffff     30.75      196.5       0.000011
+3456786 2022-08-04 03:00:00  864740407ffffff     30.75      196.5       0.000039
+4495026 2022-08-04 04:00:00  864740407ffffff     30.75      196.5       0.000047
+```
+
+### 9. Results
+
+The execution of these queries demonstrated that the data pipeline works effectively. Both queries returned valid results, confirming that the transformation and indexing processes were successful. This marks a significant step towards making this dataset queryable by users based on both time and geographic location.
+
+These sample queries validate that the processed precipitation data is not only correctly indexed but also quickly accessible for both temporal and spatial analysis.
+
+
 
 
 
