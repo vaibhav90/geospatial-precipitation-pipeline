@@ -1,7 +1,7 @@
 # Total Precipitation Data Processing and Query Pipeline
 
 This project aims to process and query global precipitation data (Year 2022) from ARCO ERA5 using a geospatial indexing method (H3) for efficient queries based on both time and location.
-The project will show share how one can productionize such a data processing pipeline and make it scalable for large-scale data processing on a resource-constrained environment.
+The project will share how one can productionize such a data processing pipeline and make it scalable for robust querying on a resource-constrained environment.
 
 ## 1. Machine Configuration
 
@@ -53,7 +53,7 @@ Given the above choices and the dataset, the following system-level prerequisite
 
 ### 4.1 Understanding the Data Repository
 
-The source data for this project is hosted in the ARCO ERA5 dataset, The data repository is structured hierarchically and contains various atmospheric variables across multiple years, stored in NetCDF format.
+The source data for this project is hosted in the ARCO ERA5 dataset, The data repository is structured hierarchically and contains various atmospheric/oceanic/radiation flux/ variables across multiple years, stored in NetCDF format.
 The ERA5 dataset is massive and includes different types of meteorological data, like temperature, humidity, wind speed, and more. 
 For this project, I am only concerned with total precipitation data for the year 2022. The specific path within the repository containing the data I need is:
 ```bash
@@ -263,7 +263,7 @@ After transforming each of the NetCDF files into Parquet format, the next step w
 The script (`src/consolidate_parquet_to_query_dataset`) reads all the Parquet files in the directory, concatenates them into a single DataFrame, and then saves the combined dataset as a single Parquet file.
 
 To verify the integrity and structure of our final combined Parquet file, I implemented a sanity check script using Dask, a library for parallel computing in Python.
-This scripted tests the Data Loading Verification, Schema Validation, Data Sampling, H3 Index Verification. The below was the output of the sanity check script:
+This script tests the Data Loading Verification, Schema Validation, Data Sampling, H3 Index Verification. The below was the output of the sanity check script:
 
 ```bash
 Columns in the dataset: Index(['timestamp', 'h3_index', 'latitude', 'longitude', 'precipitation'], dtype='object')
@@ -288,7 +288,7 @@ Name: h3_index, dtype: string
 
 ## 8. Querying the Processed Data
 
-After processing the raw NetCDF files into a combined Parquet file format,  validation that the data is both accessible and performant when querying in needed.
+After processing the raw NetCDF files into a combined Parquet file format, validation that the data is both accessible and performant when querying in needed.
 The below queries were implemented and tested (`src/example_queries`). 
 
 1. **Query by Timestamp Range:**
@@ -321,16 +321,18 @@ Query by timestamp and H3 index executed in 176.15 seconds.
 
 ### 9. Results
 
-The execution of these queries demonstrated that the data pipeline works effectively. Both queries returned valid results, confirming that the transformation and indexing processes were successful. This marks a significant step towards making this dataset queryable by users based on both time and geographic location.
+The execution of these queries demonstrated that the data pipeline works as expected. Both queries returned valid results, confirming that the transformation and indexing processes were successful.
+These sample queries validate that the processed precipitation data is not only correctly indexed but also accessible for both temporal and spatial analysis.
 
-These sample queries validate that the processed precipitation data is not only correctly indexed but also quickly accessible for both temporal and spatial analysis.
 
+### 10. Improvements
+I have provided a complete setup of how this pipeline can be productionized using Airflow, Docker and Docker Compose. See (`production_src/`)
+I have also provided a complete system architecture for a scalable system that accounts for the complete dataset. See (`System_Architecture_Scalable_Production.md`)
 
-## 10. Timeframes & References
+## 11. Timeframes & References
 
-The entire project took me ~3 Hours of active time including the setup, exploration, and processing of the dataset. 
-The project was completed in a single day, and the results were verified the next day. For scripting and testing, I used [Github Copilot](https://github.com/features/copilot). 
-I also tested how Copilot compared with [Claude-Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet) and now can see the potential of using Claude-Sonnet for such projects.
+The project took me ~3 Hours of active time including the setup, exploration, and processing of the dataset. 
+For scripting and testing, I used [Github Copilot](https://github.com/features/copilot).
 
 1. [ERA5 data](https://cloud.google.com/storage/docs/public-datasets/era5)
 2. [Recipes for reproducing Analysis-Ready & Cloud Optimized (ARCO) ERA5 datasets](https://github.com/google-research/arco-era5)
